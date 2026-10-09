@@ -11,7 +11,8 @@
           "path": "plugins/home-assistant/plugin.json",
           "jsonpath": "$.version"
         }
-      ]
+      ],
+      "initial-version": "1.0.0"
     }
   }
 }
