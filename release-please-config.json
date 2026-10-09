@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "b2c87ccfe0c2b352b8499cd4a4dcc2ca846d97c8",
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "include-component-in-tag": false,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "plugins/home-assistant/plugin.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}
