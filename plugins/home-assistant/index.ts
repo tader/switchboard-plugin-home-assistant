@@ -1,8 +1,11 @@
+import { readFileSync } from 'node:fs';
 import type { Connection, Field, PluginContext } from './types/api.d.ts';
 import type * as OAuth2 from './types/oauth2.d.ts';
 import type * as ApiKey from './types/api-key.d.ts';
 
 type Cfg = Record<string, any>;
+
+const openapi = JSON.parse(readFileSync(new URL('./openapi.json', import.meta.url), 'utf8'));
 
 const urlField: Field = {
   key: 'url',
@@ -41,6 +44,7 @@ export default function setup(ctx: PluginContext) {
         description: 'Smart home',
         icon: 'icon.svg',
         docsUrl: 'https://developers.home-assistant.io/docs/api/rest/',
+        openapi,
         baseUrl: (conn: Connection) => instance(conn.config),
         authMethods: [
           oauth.authorizationCode({

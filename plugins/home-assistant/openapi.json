@@ -1,0 +1,2073 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Home Assistant REST API",
+    "version": "1.0.0",
+    "description": "Plugin-maintained description of the documented Home Assistant REST API. Available integrations and service schemas depend on the connected instance. All operations require a bearer access token."
+  },
+  "externalDocs": {
+    "description": "Home Assistant REST API reference",
+    "url": "https://developers.home-assistant.io/docs/api/rest/"
+  },
+  "servers": [
+    {
+      "url": "http://{host}:8123",
+      "description": "Placeholder; Switchboard substitutes the connected Home Assistant base URL.",
+      "variables": {
+        "host": {
+          "default": "homeassistant.example.invalid"
+        }
+      }
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "System"
+    },
+    {
+      "name": "Events"
+    },
+    {
+      "name": "Services"
+    },
+    {
+      "name": "States"
+    },
+    {
+      "name": "History"
+    },
+    {
+      "name": "Cameras"
+    },
+    {
+      "name": "Calendars"
+    },
+    {
+      "name": "Templates"
+    },
+    {
+      "name": "Intents"
+    }
+  ],
+  "paths": {
+    "/api/": {
+      "get": {
+        "operationId": "getApiStatus",
+        "summary": "Check API availability",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "API availability message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          }
+        },
+        "description": "The trailing slash is required."
+      }
+    },
+    "/api/config": {
+      "get": {
+        "operationId": "getConfiguration",
+        "summary": "Read configuration",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "Current instance configuration.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Configuration"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          }
+        }
+      }
+    },
+    "/api/components": {
+      "get": {
+        "operationId": "listComponents",
+        "summary": "List loaded components",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "Loaded integration and platform names.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          }
+        }
+      }
+    },
+    "/api/config/core/check_config": {
+      "post": {
+        "operationId": "checkConfiguration",
+        "summary": "Validate configuration.yaml",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "Validation outcome; invalid configurations still return HTTP 200.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfigurationCheck"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "description": "Requires the config integration and an administrator. No request body is needed."
+      }
+    },
+    "/api/events": {
+      "get": {
+        "operationId": "listEventListeners",
+        "summary": "List event listeners",
+        "tags": [
+          "Events"
+        ],
+        "responses": {
+          "200": {
+            "description": "Event types and listener counts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventListener"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          }
+        }
+      }
+    },
+    "/api/events/{event_type}": {
+      "post": {
+        "operationId": "fireEvent",
+        "summary": "Fire an event",
+        "tags": [
+          "Events"
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmation message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "name": "event_type",
+            "in": "path",
+            "description": "Event type to fire.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "custom_event"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "example": {
+                "message": "Hello"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/services": {
+      "get": {
+        "operationId": "listServices",
+        "summary": "List available services",
+        "tags": [
+          "Services"
+        ],
+        "responses": {
+          "200": {
+            "description": "Services grouped by domain.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceDomain"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          }
+        }
+      }
+    },
+    "/api/services/{domain}/{service}": {
+      "post": {
+        "operationId": "callService",
+        "summary": "Call a service",
+        "tags": [
+          "Services"
+        ],
+        "responses": {
+          "200": {
+            "description": "Without return_response: changed states. With return_response: changed states and service-specific response data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EntityState"
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/ServiceCallResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "description": "Waits for service execution. Response data requires ?return_response. A service that requires response data returns 400 if the flag is absent; a service without response support returns 400 if it is present.",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "description": "Service domain.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "light"
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "description": "Service name.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "turn_on"
+          },
+          {
+            "name": "return_response",
+            "in": "query",
+            "description": "Request response data from a service that supports it. Presence enables this option, even with an empty value; omit the parameter to disable it.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "allowEmptyValue": true,
+            "example": ""
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceCall"
+              },
+              "example": {
+                "entity_id": "light.kitchen"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/states": {
+      "get": {
+        "operationId": "listStates",
+        "summary": "List entity states",
+        "tags": [
+          "States"
+        ],
+        "responses": {
+          "200": {
+            "description": "Current states.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EntityState"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          }
+        }
+      }
+    },
+    "/api/states/{entity_id}": {
+      "get": {
+        "operationId": "getState",
+        "summary": "Read an entity state",
+        "tags": [
+          "States"
+        ],
+        "responses": {
+          "200": {
+            "description": "Current entity state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityState"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "name": "entity_id",
+            "in": "path",
+            "description": "Entity ID in domain.object_id form.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "sensor.kitchen_temperature"
+          }
+        ]
+      },
+      "post": {
+        "operationId": "setState",
+        "summary": "Create or update an entity state",
+        "tags": [
+          "States"
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated existing state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityState"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL of the entity state resource.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "201": {
+            "description": "Created a new state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityState"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL of the entity state resource.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          }
+        },
+        "description": "Changes the state representation only. Use a service call to control a physical device. States may be created without an underlying entity.",
+        "parameters": [
+          {
+            "name": "entity_id",
+            "in": "path",
+            "description": "Entity ID in domain.object_id form.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "sensor.kitchen_temperature"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StateUpdate"
+              },
+              "example": {
+                "state": "25",
+                "attributes": {
+                  "unit_of_measurement": "°C"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteState",
+        "summary": "Remove an entity state",
+        "tags": [
+          "States"
+        ],
+        "responses": {
+          "200": {
+            "description": "Removal confirmation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "name": "entity_id",
+            "in": "path",
+            "description": "Entity ID in domain.object_id form.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "sensor.kitchen_temperature"
+          }
+        ]
+      }
+    },
+    "/api/history/period": {
+      "get": {
+        "operationId": "getRecentHistory",
+        "summary": "Read entity history",
+        "tags": [
+          "History"
+        ],
+        "responses": {
+          "200": {
+            "description": "One state-history array per entity with available history.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/HistoryState"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Requires the history and recorder integrations. With no timestamp in the path, the period starts 24 hours before the request.",
+        "parameters": [
+          {
+            "name": "filter_entity_id",
+            "in": "query",
+            "description": "Comma-separated entity IDs to retrieve.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "sensor.temperature,sensor.humidity"
+          },
+          {
+            "name": "end_time",
+            "in": "query",
+            "description": "Period end as an ISO 8601 timestamp. Defaults to one day after the start.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "minimal_response",
+            "in": "query",
+            "description": "Reduce intermediate states to state and last_changed. Presence enables this option, even with an empty value; omit the parameter to disable it.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "allowEmptyValue": true,
+            "example": ""
+          },
+          {
+            "name": "no_attributes",
+            "in": "query",
+            "description": "Omit state attributes. Presence enables this option, even with an empty value; omit the parameter to disable it.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "allowEmptyValue": true,
+            "example": ""
+          },
+          {
+            "name": "significant_changes_only",
+            "in": "query",
+            "description": "Use 0 to include all changes; otherwise only significant changes are included.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "0",
+                "1"
+              ],
+              "default": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/api/history/period/{timestamp}": {
+      "get": {
+        "operationId": "getHistory",
+        "summary": "Read entity history",
+        "tags": [
+          "History"
+        ],
+        "responses": {
+          "200": {
+            "description": "One state-history array per entity with available history.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/HistoryState"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Requires the history and recorder integrations. With no timestamp in the path, the period starts 24 hours before the request.",
+        "parameters": [
+          {
+            "name": "timestamp",
+            "in": "path",
+            "description": "Period start as an ISO 8601 timestamp; URL encode timezone offsets.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2026-01-01T00:00:00Z"
+          },
+          {
+            "name": "filter_entity_id",
+            "in": "query",
+            "description": "Comma-separated entity IDs to retrieve.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "sensor.temperature,sensor.humidity"
+          },
+          {
+            "name": "end_time",
+            "in": "query",
+            "description": "Period end as an ISO 8601 timestamp. Defaults to one day after the start.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "minimal_response",
+            "in": "query",
+            "description": "Reduce intermediate states to state and last_changed. Presence enables this option, even with an empty value; omit the parameter to disable it.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "allowEmptyValue": true,
+            "example": ""
+          },
+          {
+            "name": "no_attributes",
+            "in": "query",
+            "description": "Omit state attributes. Presence enables this option, even with an empty value; omit the parameter to disable it.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "allowEmptyValue": true,
+            "example": ""
+          },
+          {
+            "name": "significant_changes_only",
+            "in": "query",
+            "description": "Use 0 to include all changes; otherwise only significant changes are included.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "0",
+                "1"
+              ],
+              "default": "1"
+            }
+          }
+        ]
+      }
+    },
+    "/api/logbook": {
+      "get": {
+        "operationId": "getRecentLogbook",
+        "summary": "Read logbook entries",
+        "tags": [
+          "History"
+        ],
+        "responses": {
+          "200": {
+            "description": "Logbook entries for the period.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LogbookEntry"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Requires the logbook integration. With no timestamp in the path, the period starts 24 hours before the request.",
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "query",
+            "description": "Filter entries to an entity ID.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "sensor.temperature"
+          },
+          {
+            "name": "end_time",
+            "in": "query",
+            "description": "Period end as an ISO 8601 timestamp. Defaults to one day after the start.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ]
+      }
+    },
+    "/api/logbook/{timestamp}": {
+      "get": {
+        "operationId": "getLogbook",
+        "summary": "Read logbook entries",
+        "tags": [
+          "History"
+        ],
+        "responses": {
+          "200": {
+            "description": "Logbook entries for the period.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LogbookEntry"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Requires the logbook integration. With no timestamp in the path, the period starts 24 hours before the request.",
+        "parameters": [
+          {
+            "name": "timestamp",
+            "in": "path",
+            "description": "Period start as an ISO 8601 timestamp; URL encode timezone offsets.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2026-01-01T00:00:00Z"
+          },
+          {
+            "name": "entity",
+            "in": "query",
+            "description": "Filter entries to an entity ID.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "sensor.temperature"
+          },
+          {
+            "name": "end_time",
+            "in": "query",
+            "description": "Period end as an ISO 8601 timestamp. Defaults to one day after the start.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ]
+      }
+    },
+    "/api/error_log": {
+      "get": {
+        "operationId": "getErrorLog",
+        "summary": "Read the session error log",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "Error log text.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          }
+        }
+      }
+    },
+    "/api/camera_proxy/{camera_entity_id}": {
+      "get": {
+        "operationId": "getCameraImage",
+        "summary": "Read a camera image",
+        "tags": [
+          "Cameras"
+        ],
+        "responses": {
+          "200": {
+            "description": "Camera still image; the media type depends on the camera.",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "camera_entity_id",
+            "in": "path",
+            "description": "Camera entity ID.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "camera.front_door"
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "description": "Optional cache-busting value, commonly a Unix timestamp in milliseconds.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "1462653861261"
+          }
+        ]
+      }
+    },
+    "/api/calendars": {
+      "get": {
+        "operationId": "listCalendars",
+        "summary": "List calendars",
+        "tags": [
+          "Calendars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Calendar entities.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Calendar"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          }
+        }
+      }
+    },
+    "/api/calendars/{calendar_entity_id}": {
+      "get": {
+        "operationId": "getCalendarEvents",
+        "summary": "Read calendar events",
+        "tags": [
+          "Calendars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Events overlapping the requested period; event end times are exclusive.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CalendarEvent"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_entity_id",
+            "in": "path",
+            "description": "Calendar entity ID.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "calendar.personal"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "ISO 8601 interval start.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "description": "ISO 8601 interval end (exclusive).",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ]
+      }
+    },
+    "/api/template": {
+      "post": {
+        "operationId": "renderTemplate",
+        "summary": "Render a template",
+        "tags": [
+          "Templates"
+        ],
+        "responses": {
+          "200": {
+            "description": "Rendered template text.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateRequest"
+              },
+              "example": {
+                "template": "Temperature: {{ states('sensor.kitchen_temperature') }}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intent/handle": {
+      "post": {
+        "operationId": "handleIntent",
+        "summary": "Handle an intent",
+        "tags": [
+          "Intents"
+        ],
+        "responses": {
+          "200": {
+            "description": "Intent response, including speech, cards, and structured success or error data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntentResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Requires the intent integration. Data maps slot names to raw values. Intent handling failures may be returned as HTTP 200 with response_type set to error.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntentRequest"
+              },
+              "example": {
+                "name": "SetTimer",
+                "data": {
+                  "seconds": "30"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Home Assistant access token (OAuth access token or long-lived access token)."
+      }
+    },
+    "schemas": {
+      "Message": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "Context": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "user_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "parent_id",
+          "user_id"
+        ]
+      },
+      "EntityState": {
+        "type": "object",
+        "properties": {
+          "entity_id": {
+            "type": "string",
+            "examples": [
+              "light.kitchen"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "description": "State values are strings, including numeric sensor readings.",
+            "examples": [
+              "on"
+            ]
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "last_changed": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_reported": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "context": {
+            "$ref": "#/components/schemas/Context"
+          }
+        },
+        "required": [
+          "entity_id",
+          "state",
+          "attributes",
+          "last_changed"
+        ]
+      },
+      "StateUpdate": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "force_update": {
+            "type": "boolean",
+            "default": false,
+            "description": "Emit a state change even if the value is unchanged."
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "Configuration": {
+        "type": "object",
+        "properties": {
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "config_dir": {
+            "type": "string"
+          },
+          "elevation": {
+            "type": "number"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "location_name": {
+            "type": "string"
+          },
+          "time_zone": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "unit_system": {
+            "type": "object",
+            "properties": {
+              "length": {
+                "type": "string"
+              },
+              "mass": {
+                "type": "string"
+              },
+              "temperature": {
+                "type": "string"
+              },
+              "volume": {
+                "type": "string"
+              },
+              "pressure": {
+                "type": "string"
+              },
+              "wind_speed": {
+                "type": "string"
+              },
+              "accumulated_precipitation": {
+                "type": "string"
+              }
+            }
+          },
+          "whitelist_external_dirs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowlist_external_dirs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowlist_external_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "external_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "internal_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currency": {
+            "type": "string"
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "safe_mode": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      },
+      "ConfigurationCheck": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "enum": [
+              "valid",
+              "invalid"
+            ]
+          },
+          "errors": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "warnings": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "errors"
+        ]
+      },
+      "EventListener": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "listener_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "event",
+          "listener_count"
+        ]
+      },
+      "ServiceField": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "example": {},
+          "default": {},
+          "selector": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "ServiceDescription": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ServiceField"
+            }
+          },
+          "target": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "optional": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "ServiceDomain": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string"
+          },
+          "services": {
+            "description": "Current releases return a map of service names to metadata; older releases returned a list of names.",
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/ServiceDescription"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "domain",
+          "services"
+        ]
+      },
+      "ServiceCall": {
+        "type": "object",
+        "properties": {
+          "entity_id": {
+            "description": "Target entity ID or IDs, when accepted by the selected service.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        },
+        "additionalProperties": true,
+        "description": "Service-specific data is supplied directly in this object. Accepted fields and required values depend on the domain and service; discover metadata with GET /api/services."
+      },
+      "ServiceCallResponse": {
+        "type": "object",
+        "properties": {
+          "changed_states": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityState"
+            }
+          },
+          "service_response": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "changed_states",
+          "service_response"
+        ]
+      },
+      "HistoryState": {
+        "type": "object",
+        "properties": {
+          "entity_id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "last_changed": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "context": {
+            "$ref": "#/components/schemas/Context"
+          }
+        },
+        "description": "Historical state. Intermediate records with minimal_response may have only state and last_changed; no_attributes omits attributes.",
+        "required": [
+          "state",
+          "last_changed"
+        ]
+      },
+      "LogbookEntry": {
+        "type": "object",
+        "properties": {
+          "when": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "name": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "context_user_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "context_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "context_event_type": {
+            "type": "string"
+          },
+          "context_domain": {
+            "type": "string"
+          },
+          "context_name": {
+            "type": "string"
+          },
+          "context_message": {
+            "type": "string"
+          },
+          "context_entity_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "when"
+        ]
+      },
+      "Calendar": {
+        "type": "object",
+        "properties": {
+          "entity_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "entity_id",
+          "name"
+        ]
+      },
+      "CalendarEventTime": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            "required": [
+              "date"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "dateTime": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "dateTime"
+            ]
+          }
+        ]
+      },
+      "CalendarEvent": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "string"
+          },
+          "start": {
+            "$ref": "#/components/schemas/CalendarEventTime"
+          },
+          "end": {
+            "$ref": "#/components/schemas/CalendarEventTime"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uid": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recurrence_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "summary",
+          "start",
+          "end"
+        ]
+      },
+      "TemplateRequest": {
+        "type": "object",
+        "properties": {
+          "template": {
+            "type": "string"
+          },
+          "variables": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "template"
+        ]
+      },
+      "IntentRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "language": {
+            "type": "string"
+          },
+          "assistant": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "device_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "satellite_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "IntentTarget": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      },
+    "IntentSpeech": {
+        "type": "object",
+        "properties": {
+          "speech": {
+            "type": "string"
+          },
+        "extra_data": {}
+        },
+        "required": [
+          "speech"
+        ]
+      },
+    "IntentReprompt": {
+        "type": "object",
+        "properties": {
+          "reprompt": {
+            "type": "string"
+          },
+        "extra_data": {}
+        },
+        "required": [
+          "reprompt"
+        ]
+      },
+      "IntentCard": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "content"
+        ]
+      },
+      "IntentResponse": {
+        "type": "object",
+        "properties": {
+          "speech": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/IntentSpeech"
+            }
+          },
+          "card": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/IntentCard"
+            }
+          },
+          "reprompt": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/IntentReprompt"
+            }
+          },
+          "language": {
+            "type": "string"
+          },
+          "response_type": {
+            "type": "string",
+          "enum": [
+            "action_done",
+            "partial_action_done",
+            "query_answer",
+              "error"
+            ]
+          },
+          "speech_slots": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "success": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/IntentTarget"
+                }
+              },
+              "failed": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/IntentTarget"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "speech",
+          "card",
+          "language",
+          "response_type",
+          "data"
+        ]
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid request, parameters, or service data.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Message"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Bearer token is missing or invalid, or the user lacks permission.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Message"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "The authenticated user is not permitted to perform this operation.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Message"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "The requested entity, resource, or integration endpoint is unavailable.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Message"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MethodNotAllowed": {
+        "description": "The HTTP method is not supported for this resource.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Message"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Home Assistant could not complete the operation.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Message"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
