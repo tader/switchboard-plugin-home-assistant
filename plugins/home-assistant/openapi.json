@@ -946,36 +946,6 @@
         ]
       }
     },
-    "/api/error_log": {
-      "get": {
-        "operationId": "getErrorLog",
-        "summary": "Read the session error log",
-        "tags": [
-          "System"
-        ],
-        "responses": {
-          "200": {
-            "description": "Error log text.",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "405": {
-            "$ref": "#/components/responses/MethodNotAllowed"
-          }
-        }
-      }
-    },
     "/api/camera_proxy/{camera_entity_id}": {
       "get": {
         "operationId": "getCameraImage",

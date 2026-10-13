@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { Connection, Field, PluginContext } from './types/api.d.ts';
+import { websocket, withWebSocketAuth } from './websocket.ts';
 import type * as OAuth2 from './types/oauth2.d.ts';
 import type * as ApiKey from './types/api-key.d.ts';
 
@@ -46,8 +47,9 @@ export default function setup(ctx: PluginContext) {
         docsUrl: 'https://developers.home-assistant.io/docs/api/rest/',
         openapi,
         baseUrl: (conn: Connection) => instance(conn.config),
+        websocket,
         authMethods: [
-          oauth.authorizationCode({
+          withWebSocketAuth(oauth.authorizationCode({
             id: 'oauth',
             name: 'Sign in with Home Assistant',
             fields: [urlField],
@@ -60,15 +62,15 @@ export default function setup(ctx: PluginContext) {
               if (!creds.refreshToken) return;
               await fetch(`${instance(c)}/auth/revoke`, { method: 'POST', body: new URLSearchParams({ token: creds.refreshToken }) }).catch(() => {});
             },
-          }),
-          apiKey.bearerToken({
+          })),
+          withWebSocketAuth(apiKey.bearerToken({
             id: 'token',
             name: 'Long-lived access token',
             secretLabel: 'Access token',
             secretDescription: 'Create one on your Home Assistant profile page, under Security',
             fields: [urlField],
             identify: (creds, c) => identify(instance(c), creds.token),
-          }),
+          })),
         ],
       },
     ],
