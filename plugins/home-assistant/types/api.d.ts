@@ -212,6 +212,7 @@ export interface WebSocketOperation {
   inputSchema: Record<string, unknown>;
   outputSchema?: Record<string, unknown>;
   eventSchema?: Record<string, unknown>;
+  rest?: { method: 'GET' | 'POST' | 'PUT'; path: string };
   readOnlyHint?: boolean;
   idempotentHint?: boolean;
 }
@@ -232,6 +233,7 @@ export interface WebSocketSession {
 }
 
 export interface WebSocketCapability {
+  proxy?: boolean;
   endpoint: string | ((conn: Connection) => string);
   operations: WebSocketOperation[];
   createSession(args: { channel: WebSocketChannel; connection: Connection; signal: AbortSignal }): WebSocketSession | Promise<WebSocketSession>;

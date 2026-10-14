@@ -167,3 +167,15 @@ test('authentication and protocol replies accept Uint8Array text frames', async 
   const call = session.call('system_log/list', {}, live()); channel.reply(1, []);
   assert.deepEqual(await call, []); session.dispose!();
 });
+
+
+test('dedicated REST endpoints map to the HA commands and raw proxy is enabled', () => {
+  assert.equal(websocket.proxy, true);
+  assert.deepEqual(websocket.operations.filter(op => op.rest).map(op => [op.rest!.method, op.rest!.path, op.id]), [
+    ['GET', '/system/logs', 'system_log/list'],
+    ['GET', '/lovelace/dashboards', 'lovelace/dashboards/list'],
+    ['GET', '/lovelace/config', 'lovelace/config'],
+    ['PUT', '/lovelace/config', 'lovelace/config/save'],
+  ]);
+  assert.ok(websocket.operations.filter(op => op.rest?.method === 'GET').every(op => op.readOnlyHint === true));
+});

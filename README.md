@@ -41,6 +41,27 @@ system_log:
 
 See the [system log documentation](https://www.home-assistant.io/integrations/system_log/) and [WebSocket protocol](https://developers.home-assistant.io/docs/api/websocket/).
 
+### Direct WebSocket proxy
+
+Connect to `ws(s)://<switchboard>/api/connections/{ref}/websocket/proxy` using a Switchboard bearer token in the upgrade request. Browser clients use the same-origin Switchboard session cookie. Switchboard opens a dedicated socket to Home Assistant, performs the HA authentication handshake, and then relays protocol frames in both directions. Do not send an HA token or repeat its authentication handshake. For example, send `{"id":1,"type":"lovelace/config"}` and receive Home Assistant's native result frame. Subsequent message IDs must be unique and increasing, as required by HA.
+
+The Switchboard console's **WebSocket proxy** mode connects to this endpoint and lets you send JSON protocol messages and inspect replies. **Declared operations** remain available for schema-validated commands and managed subscriptions. Raw sockets are separate from managed operation sockets; disconnecting one does not close the other. Connection-scoped Switchboard permissions and upstream HA permissions still apply. Raw proxies currently require a local connection.
+
+### Dedicated plugin REST API
+
+These client-facing REST endpoints use HA's WebSocket API internally, with Switchboard managing authentication and reply correlation:
+
+| Method | Switchboard endpoint | HA WebSocket command |
+| --- | --- | --- |
+| GET | `/api/connections/{ref}/plugin/lovelace/dashboards` | `lovelace/dashboards/list` |
+| GET | `/api/connections/{ref}/plugin/lovelace/config?url_path=my-home&force=true` | `lovelace/config` |
+| PUT | `/api/connections/{ref}/plugin/lovelace/config` | `lovelace/config/save` |
+| GET | `/api/connections/{ref}/plugin/system/logs` | `system_log/list` |
+
+Use a Switchboard bearer token or same-origin session cookie. GET endpoints return the HA result directly as JSON. PUT takes `{"url_path":"my-home","config":{...}}` and returns `null` after HA acknowledges the save. Omit `url_path` for the default dashboard. Read the existing configuration first, preserve its fields, and PUT the complete edited configuration: saves replace the dashboard and require an admin and storage mode. YAML dashboards remain file-managed.
+
+The plugin declares these REST bindings; Switchboard opens/reuses its authenticated HA WebSocket connection and executes the plugin's protocol adapter. No REST request is sent to HA for these operations. The generated OpenAPI reference is at `/api/connections/{ref}/plugin/openapi.json`. The API reference's WebSocket entries also include each operation's REST binding. These endpoints currently require a local connection and the Switchboard core support accompanying this plugin change.
+
 ### Dedicated API calls
 
 Use your Switchboard API token in the `Authorization: Bearer …` header. URL-encode the connection reference in these paths.
