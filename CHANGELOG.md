@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/tader/switchboard-plugin-home-assistant/compare/v1.2.0...v1.3.0) (2026-11-02)
+
+
+### Features
+
+* add read-only Home Assistant repairs operations ([5da9573](https://github.com/tader/switchboard-plugin-home-assistant/commit/5da95736f301889ac66b39abcb64e8ed15917107))
+* add read-only Home Assistant repairs operations ([9a0977a](https://github.com/tader/switchboard-plugin-home-assistant/commit/9a0977a81a9d86490f206a3dd73a551f416c6c68))
+
 ## [1.2.0](https://github.com/tader/switchboard-plugin-home-assistant/compare/v1.1.0...v1.2.0) (2026-10-14)
 
 
