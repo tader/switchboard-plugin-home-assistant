@@ -14,7 +14,7 @@ Dependencies: `oauth2` (^1.0.0), `api-key` (^1.0.0). Missing external dependenci
 
 Install this repository before upgrading a Switchboard instance that bundles `home-assistant`. The plugin ID, service IDs, authentication methods, settings and persistent data paths are preserved. Installed plugins replace the built-in copy. Existing connections and saved calls continue to work; keep the instance data directory and encryption key.
 
-## Logs and Lovelace over WebSocket
+## Logs, repairs and Lovelace over WebSocket
 
 Requires a Switchboard build with managed WebSocket operations (as implemented in `~/switchboard`). Existing OAuth and long-lived token connections work with the same credentials; REST operations remain available alongside WebSocket operations.
 
@@ -25,6 +25,9 @@ The connection's WebSocket console and Switchboard API/MCP expose these dedicate
 | `system_log/list` | Command | Recent condensed warnings and errors, newest first; requires an admin. |
 | `system_log/subscribe` | Subscription | Live `system_log_event` events; requires `system_log.fire_event: true` in Home Assistant. |
 | `system_log/subscribe_raw` | Subscription | Raw log lines and an initial backlog, with optional `integration` filter; requires an admin and upstream support for this command. |
+| `repairs/list_issues` | Command | Visible active repairs, including ignored issues, severity and translation metadata. |
+| `repairs/get_issue_data` | Command | Additional issue data (possibly null); requires `domain` and `issue_id`. |
+| `repairs/subscribe` | Subscription | Live `repairs_issue_registry_updated` events; fetch the list again after a change. |
 | `lovelace/dashboards/list` | Command | Named dashboards, including their mode and URL path. |
 | `lovelace/config` | Command | Read a complete dashboard; accepts `url_path` and optional `force`. |
 | `lovelace/config/save` | Command | Replace a complete storage-mode dashboard; requires an admin. |
@@ -40,6 +43,18 @@ system_log:
 ```
 
 See the [system log documentation](https://www.home-assistant.io/integrations/system_log/) and [WebSocket protocol](https://developers.home-assistant.io/docs/api/websocket/).
+
+### Viewing repairs
+
+Read repairs through `GET /api/connections/{ref}/plugin/repairs/issues` or call `repairs/list_issues` with empty arguments. The result is `{ "issues": [...] }`, including ignored issues returned by Home Assistant. Each issue includes its `domain`, `issue_id`, severity, fixability and translation metadata. HA returns translation keys and placeholders rather than rendered titles/descriptions. The `repairs/get_issue_data` operation returns integration-provided `{ "issue_data": {...} }` or `{ "issue_data": null }`; it does not render those translations.
+
+For example, use `POST /api/connections/{ref}/websocket/call` with:
+
+```json
+{"operationId":"repairs/get_issue_data","arguments":{"domain":"mqtt","issue_id":"connection"}}
+```
+
+Use the `domain` and `issue_id` from the list. Unknown issues return `unknown_issue`. Subscribe to `repairs/subscribe` with empty arguments to follow changes; events are change notifications, so fetch the list initially and again after each event. These operations only read repairs. See Home Assistant's [repairs WebSocket implementation](https://github.com/home-assistant/core/blob/dev/homeassistant/components/repairs/websocket_api.py) and [frontend repairs data API](https://github.com/home-assistant/frontend/blob/dev/src/data/repairs.ts).
 
 ### Direct WebSocket proxy
 
@@ -57,6 +72,8 @@ These client-facing REST endpoints use HA's WebSocket API internally, with Switc
 | GET | `/api/connections/{ref}/plugin/lovelace/config?url_path=my-home&force=true` | `lovelace/config` |
 | PUT | `/api/connections/{ref}/plugin/lovelace/config` | `lovelace/config/save` |
 | GET | `/api/connections/{ref}/plugin/system/logs` | `system_log/list` |
+| GET | `/api/connections/{ref}/plugin/repairs/issues` | `repairs/list_issues` |
+| GET | `/api/connections/{ref}/plugin/repairs/issue-data?domain=mqtt&issue_id=connection` | `repairs/get_issue_data` |
 
 Use a Switchboard bearer token or same-origin session cookie. GET endpoints return the HA result directly as JSON. PUT takes `{"url_path":"my-home","config":{...}}` and returns `null` after HA acknowledges the save. Omit `url_path` for the default dashboard. Read the existing configuration first, preserve its fields, and PUT the complete edited configuration: saves replace the dashboard and require an admin and storage mode. YAML dashboards remain file-managed.
 

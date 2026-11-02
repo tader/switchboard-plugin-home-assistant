@@ -80,6 +80,7 @@ test('matches concurrent replies and rejects upstream failures', async t => {
 
 for (const [operation, type, args, event] of [
   ['system_log/subscribe', 'subscribe_events', { event_type: 'system_log_event' }, { data: { level: 'ERROR' } }],
+  ['repairs/subscribe', 'subscribe_events', { event_type: 'repairs_issue_registry_updated' }, { data: { action: 'create', domain: 'mqtt', issue_id: 'connection' } }],
   ['lovelace/subscribe', 'subscribe_events', { event_type: 'lovelace_updated' }, { data: { url_path: 'my-home' } }],
   ['system_log/subscribe_raw', 'system_log/subscribe_raw', { integration: 'mqtt' }, ['initial line', 'new line']],
 ] as const) {
@@ -173,9 +174,43 @@ test('dedicated REST endpoints map to the HA commands and raw proxy is enabled',
   assert.equal(websocket.proxy, true);
   assert.deepEqual(websocket.operations.filter(op => op.rest).map(op => [op.rest!.method, op.rest!.path, op.id]), [
     ['GET', '/system/logs', 'system_log/list'],
+    ['GET', '/repairs/issues', 'repairs/list_issues'],
+    ['GET', '/repairs/issue-data', 'repairs/get_issue_data'],
     ['GET', '/lovelace/dashboards', 'lovelace/dashboards/list'],
     ['GET', '/lovelace/config', 'lovelace/config'],
     ['PUT', '/lovelace/config', 'lovelace/config/save'],
   ]);
   assert.ok(websocket.operations.filter(op => op.rest?.method === 'GET').every(op => op.readOnlyHint === true));
+});
+
+test('repair list and detail data preserve HA payloads and correlate concurrent replies', async t => {
+  const channel = new Channel(); const session = createSession(channel, live());
+  t.after(() => session.dispose?.());
+  const issues = { issues: [{ domain: 'mqtt', issue_id: 'connection', severity: 'warning', ignored: true, is_fixable: false, translation_key: 'connection', translation_placeholders: { name: 'Broker' } }] };
+  const list = session.call('repairs/list_issues', {}, live());
+  const detail = session.call('repairs/get_issue_data', { domain: 'mqtt', issue_id: 'connection' }, live());
+  assert.deepEqual(channel.sent, [
+    { id: 1, type: 'repairs/list_issues' },
+    { id: 2, type: 'repairs/get_issue_data', domain: 'mqtt', issue_id: 'connection' },
+  ]);
+  channel.reply(2, { issue_data: null }); channel.reply(1, issues);
+  assert.deepEqual(await detail, { issue_data: null });
+  assert.deepEqual(await list, issues);
+  const data = session.call('repairs/get_issue_data', { domain: 'mqtt', issue_id: 'connection' }, live());
+  channel.reply(3, { issue_data: { integration: 'mqtt', nested: { reason: 'connection lost' } } });
+  assert.deepEqual(await data, { issue_data: { integration: 'mqtt', nested: { reason: 'connection lost' } } });
+  const missing = session.call('repairs/get_issue_data', { domain: 'mqtt', issue_id: 'missing' }, live());
+  channel.push({ id: 4, type: 'result', success: false, error: { code: 'unknown_issue', message: 'private data' } });
+  await assert.rejects(missing, { code: 'unknown_issue', message: 'Home Assistant command failed (unknown_issue)' });
+  const empty = session.call('repairs/list_issues', {}, live());
+  channel.reply(5, { issues: [] }); assert.deepEqual(await empty, { issues: [] });
+});
+
+test('repair operations are read-only and detail arguments are required', () => {
+  const operations = websocket.operations.filter(op => op.id.startsWith('repairs/'));
+  assert.equal(operations.length, 3);
+  assert.ok(operations.every(op => op.readOnlyHint === true));
+  const detail = operations.find(op => op.id === 'repairs/get_issue_data')!;
+  assert.deepEqual(detail.inputSchema.required, ['domain', 'issue_id']);
+  assert.equal(detail.inputSchema.additionalProperties, false);
 });
